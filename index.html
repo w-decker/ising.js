@@ -81,6 +81,7 @@
 
             <div>
                 <center>
+                <input type="button" id="startSim" value="Start Simulation" onclick="startSimulation()">
                 <input type='button' id='dostep' value='Step'   onclick='update_step()'></input>
                 <input type='button' id='pause' value='Pause'   onclick='update_pause()'></input>
                 <input type='button' id='restart' value='Restart' onclick='update_restart()'></input>
@@ -90,6 +91,12 @@
                 <input type='button' id='downloadgraph' value='Download graph' onclick='download_graph()'></input>
                 <input type='button' id='downloadgraph' value='Download field' onclick='download_field()'></input>
                 </center>
+            </div>
+            <div class="withspace">
+                    <center>
+                    <label class='eb_label'>Upload image</label>
+                    <input type="file" id="upload_image" accept="image/*"></input>
+                    </center>
             </div>
         </div>
 

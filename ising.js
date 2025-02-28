@@ -666,8 +666,6 @@ function change_num(){
     init_board(gN, null);
 }
 
-
-
 var init = function() {
     // create the canvas element
     empty = document.createElement('canvas');
@@ -686,6 +684,12 @@ var init = function() {
     Number.prototype.mod = function(n) {
         return ((this%n)+n)%n;
     }
+
+    document.getElementById('upload_image').addEventListener('change', function(e) {
+        let file = e.target.files[0];
+        if (!file) return;
+        handleImageFile(file);
+    });
 
     document.getElementById('label_temp_input').addEventListener("keydown", function(e) {
         if (e.keyCode == 13){
@@ -740,13 +744,9 @@ var init = function() {
     }, false);
 
     registerAnimationRequest();
-    requestAnimationFrame(tick, c);
 };
 window.onload = init;
 
-
-// Provides requestAnimationFrame in a cross browser way.
-// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 function registerAnimationRequest() {
 if ( !window.requestAnimationFrame ) {
     window.requestAnimationFrame = ( function() {
@@ -761,4 +761,58 @@ if ( !window.requestAnimationFrame ) {
 }
 }
 
+function handleImageFile(file) {
+    // Create a FileReader to read the file as DataURL
+    const reader = new FileReader();
 
+    // When file is loaded, create an <img> to draw on a temp canvas
+    reader.onload = function(ev) {
+        let img = new Image();
+        img.onload = function() {
+            // Create a temp canvas to scale the image to gN x gN
+            let canvasTemp = document.createElement('canvas');
+            canvasTemp.width  = gN; 
+            canvasTemp.height = gN;
+            let ctxTemp = canvasTemp.getContext('2d');
+
+            // Draw the image scaled to lattice size
+            ctxTemp.drawImage(img, 0, 0, gN, gN);
+
+            // Get pixel data
+            let imageData  = ctxTemp.getImageData(0, 0, gN, gN);
+            let data       = imageData.data; // RGBA array
+            let board      = new Array(gN * gN + 1);
+
+            // For each pixel, decide if it is +1 or -1
+            for (let i = 0; i < gN * gN; i++) {
+                let r = data[4*i + 0];
+                let g = data[4*i + 1];
+                let b = data[4*i + 2];
+                // Simple grayscale average
+                let gray = (r + g + b) / 3;
+
+                // Threshold at 128
+                board[i] = (gray > 128) ? 1 : -1;
+            }
+
+            // add some random noise
+            let noiseFraction = 0.05;
+            for (let i = 0; i < gN*gN; i++) {
+                if (Math.random() < noiseFraction) {
+                    board[i] = -board[i];
+                }
+            }
+
+            board[gN*gN] = 1;
+            init_board(gN, board);
+        };
+        img.src = ev.target.result; // load the image from FileReader
+    };
+
+    // Actually read the file
+    reader.readAsDataURL(file);
+}
+
+function startSimulation() {
+    requestAnimationFrame(tick, c);
+}
